@@ -1,23 +1,36 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Eye, EyeOff } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Eye, EyeOff } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { error } from "console";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [userRole, setUserRole] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [userRole, setUserRole] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!userRole || !username || !password) {
+    if (!userRole || !email || !password) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -25,47 +38,72 @@ const Login = () => {
       });
       return;
     }
-
-    // Store user role in localStorage for demo purposes
-    localStorage.setItem('userRole', userRole);
-    localStorage.setItem('username', username);
-    
-    toast({
-      title: "Login Successful",
-      description: `Welcome to Strathmore Attachment System`,
-    });
-
-    // Navigate based on role
-    switch (userRole) {
-      case 'student':
-        navigate('/student-dashboard');
-        break;
-      case 'school-supervisor':
-        navigate('/school-supervisor-dashboard');
-        break;
-      case 'host-supervisor':
-        navigate('/host-supervisor-dashboard');
-        break;
-      case 'administrator':
-        navigate('/admin-dashboard');
-        break;
-      default:
-        navigate('/');
+    try {
+      // Replace with your backend endpoint
+      const res = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: userRole, email, password }),
+      });
+      if (!res.ok) throw new Error("Login failed");
+      // const { user, token } = await res.json();
+      // if (!user || !token) {
+      //   toast({
+      //     title: "Login Failed",
+      //     description: "Invalid credentials. Please try again.",
+      //     variant: "destructive",
+      //   });
+      //   return;
+      // }
+      // localStorage.setItem("userRole", userRole);
+      // localStorage.setItem("email", email);
+      // localStorage.setItem("userId", user.id.toString());
+      // localStorage.setItem("userName", user.name);
+      // localStorage.setItem("token", token);
+      toast({
+        title: "Login Successful",
+        description: `Welcome to Strathmore Attachment System`,
+      });
+      switch (userRole) {
+        case "student":
+          navigate("/student-dashboard");
+          break;
+        case "school_supervisor":
+          navigate("/school-supervisor-dashboard");
+          break;
+        case "host_supervisor":
+          navigate("/host-supervisor-dashboard");
+          break;
+        case "administrator":
+          navigate("/admin-dashboard");
+          break;
+        default:
+          navigate("/");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Login Failed",
+        description: error.message || "An error occurred during login",
+        variant: "destructive",
+      });
+      
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-            <img 
-              src="/StrathmoreLogo.png" 
-              alt="Strathmore University" 
+            <img
+              src="/StrathmoreLogo.png"
+              alt="Strathmore University"
               className="w-20 h-20 object-contain"
             />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Strathmore University</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Strathmore University
+          </h1>
           <p className="text-gray-600">Attachment Management System</p>
         </div>
 
@@ -77,42 +115,46 @@ const Login = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={onSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
                 <Select value={userRole} onValueChange={setUserRole}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Select your role" id="role" name="role">
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="student">Student</SelectItem>
-                    <SelectItem value="school-supervisor">School Supervisor</SelectItem>
-                    <SelectItem value="host-supervisor">Host Supervisor</SelectItem>
+                    <SelectItem value="school_supervisor">School Supervisor</SelectItem>
+                    <SelectItem value="host_supervisor">Host Supervisor</SelectItem>
                     <SelectItem value="administrator">Administrator</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="username"
-                  type="text"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
                   />
                   <Button
                     type="button"
@@ -120,6 +162,7 @@ const Login = () => {
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -129,15 +172,24 @@ const Login = () => {
                   </Button>
                 </div>
               </div>
-
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-                Sign In
-              </Button>
+              <div className="flex flex-col">
+                <Button
+                  type="submit"
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  Sign In
+                </Button>
+                <p className="text-center mt-4">
+                  Don't have an account?{' '}
+                  <Link
+                    to="/register"
+                    className="text-blue-600 hover:underline"
+                  >
+                    Register
+                  </Link>
+                </p>
+              </div>
             </form>
-            <div className="text-center mt-4">
-              <span className="text-sm">Don't have an account? </span>
-              <a href="/register" className="text-blue-600 hover:underline">Register</a>
-            </div>
           </CardContent>
         </Card>
       </div>

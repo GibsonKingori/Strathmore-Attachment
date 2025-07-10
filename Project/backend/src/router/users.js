@@ -18,7 +18,7 @@ router.use(isAuthenticated, isAdmin);
 
 // User management
 router.get("/", getAllUsers);
-router.post("/", createUser);
+router.post("/register", createUser);
 router.get("/search", searchUsers);
 router.get("/stats", getUserStats);
 router.get("/:id", getUserById);

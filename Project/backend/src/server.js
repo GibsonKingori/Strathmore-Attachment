@@ -63,17 +63,21 @@ app.use((req, res, next) => {
 });
 
 // Global error handler
-// app.use((error, req, res, next) => {
-//   const statusCode = error.statusCode || 500;
-//   const message = error.message || "Internal Server Error";
-  
-//   res.status(statusCode).json({
-//     success: false,
-//     message,
-//     ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
-//   });
-// });
+app.use((error, req, res, next) => {
+  const statusCode = error.statusCode || 500;
+  const message = error.message || "Internal Server Error";
+  res.status(statusCode).json({
+    success: false,
+    message,
+    ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+  });
+});
 
-app.listen(PORT, () => {
+app.listen(PORT, async() => {
+  try{
+  await pool.query('SELECT NOW()');
   console.log(`Server is running on http://localhost:${PORT}`);
+  } catch(err){
+    console.error("Failed to connect",err.message);
+  }
 });
